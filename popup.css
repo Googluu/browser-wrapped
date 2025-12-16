@@ -194,3 +194,27 @@ button {
 .top-sites-list::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
+
+/* Botón del Wrapped */
+.wrapped-cta {
+  margin: 20px 0;
+}
+
+.btn-wrapped {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1f2937;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+}
+
+.btn-wrapped:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6);
+}

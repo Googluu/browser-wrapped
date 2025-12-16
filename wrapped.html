@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrowserRewind - Tu Año en Navegación</title>
+  <link rel="stylesheet" href="wrapped.css">
+</head>
+<body>
+  <div class="wrapped-container">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="slide active">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <h1 class="loading-title">Preparando tu Wrapped...</h1>
+        <p class="loading-subtitle">Analizando tu navegación 🎵</p>
+      </div>
+    </div>
+
+    <!-- Slide 1: Bienvenida -->
+    <div class="slide" data-slide="1">
+      <div class="slide-content">
+        <h1 class="slide-title animate-in">Tu año en</h1>
+        <h1 class="slide-title-big animate-in">BrowserRewind</h1>
+        <p class="slide-subtitle animate-in">2024</p>
+      </div>
+    </div>
+
+    <!-- Slide 2: Tiempo total -->
+    <div class="slide" data-slide="2">
+      <div class="slide-content">
+        <p class="slide-intro">Este año pasaste</p>
+        <h1 class="slide-stat-big" id="totalTimeWrapped">0 horas</h1>
+        <p class="slide-subtitle">navegando por la web</p>
+        <p class="slide-comment" id="timeComment">¡Eso es mucho tiempo!</p>
+      </div>
+    </div>
+
+    <!-- Slide 3: Sitios visitados -->
+    <div class="slide" data-slide="3">
+      <div class="slide-content">
+        <p class="slide-intro">Visitaste</p>
+        <h1 class="slide-stat-big" id="totalVisitsWrapped">0</h1>
+        <p class="slide-subtitle">sitios diferentes</p>
+        <p class="slide-comment" id="sitesComment">Eres todo un explorador digital</p>
+      </div>
+    </div>
+
+    <!-- Slide 4: Top 5 Sitios -->
+    <div class="slide" data-slide="4">
+      <div class="slide-content">
+        <h2 class="slide-title-medium">Tus Top 5 Sitios 🏆</h2>
+        <div class="top-list" id="topSitesWrapped">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Categoría favorita -->
+    <div class="slide" data-slide="5">
+      <div class="slide-content">
+        <p class="slide-intro">Tu categoría favorita fue</p>
+        <h1 class="slide-stat-big" id="topCategory">💻 Desarrollo</h1>
+        <p class="slide-subtitle" id="categoryTime">con 45 horas</p>
+        <p class="slide-comment" id="categoryComment">¡Siguele así campeon!</p>
+      </div>
+    </div>
+
+    <!-- Slide 6: Hora pico -->
+    <div class="slide" data-slide="6">
+      <div class="slide-content">
+        <p class="slide-intro">Eres más activo a las</p>
+        <h1 class="slide-stat-big" id="peakHour">10 PM</h1>
+        <p class="slide-subtitle">Hora pico de navegación 🌙</p>
+        <p class="slide-comment" id="hourComment">¡Eres un búho nocturno!</p>
+      </div>
+    </div>
+
+    <!-- Slide 7: Cementerio de bookmarks -->
+    <div class="slide" data-slide="7">
+      <div class="slide-content">
+        <h2 class="slide-title-medium">📚 Cementerio de Bookmarks</h2>
+        <p class="slide-intro">Tienes</p>
+        <h1 class="slide-stat-big" id="unreadBookmarks">0</h1>
+        <p class="slide-subtitle">bookmarks sin abrir</p>
+        <p class="slide-comment">Algún día los leerás... ¿verdad?</p>
+      </div>
+    </div>
+
+    <!-- Slide 8: Tabs zombies -->
+    <div class="slide" data-slide="8">
+      <div class="slide-content">
+        <h2 class="slide-title-medium">💀 Tabs Zombies</h2>
+        <p class="slide-intro">Actualmente tienes</p>
+        <h1 class="slide-stat-big" id="zombieTabsCount">0</h1>
+        <p class="slide-subtitle">tabs abiertas hace más de 1 hora</p>
+        <p class="slide-comment" id="tabsComment">¡Es hora de limpiar!</p>
+      </div>
+    </div>
+
+    <!-- Slide 9: Racha más larga -->
+    <div class="slide" data-slide="9">
+      <div class="slide-content">
+        <h2 class="slide-title-medium">🔥 Tu racha más larga</h2>
+        <p class="slide-intro">Navegaste</p>
+        <h1 class="slide-stat-big" id="longestStreak">7 días</h1>
+        <p class="slide-subtitle">seguidos</p>
+        <p class="slide-comment">¡Nada te detiene!</p>
+      </div>
+    </div>
+
+    <!-- Slide 10: Final -->
+    <div class="slide" data-slide="10">
+      <div class="slide-content">
+        <h1 class="slide-title-big">Gracias por usar</h1>
+        <h1 class="slide-title-big gradient-text">BrowserRewind</h1>
+        <p class="slide-subtitle">Nos vemos en 2025 🎉</p>
+        <div class="final-actions">
+          <button id="shareWrapped" class="btn-action">📸 Compartir</button>
+          <button id="restartWrapped" class="btn-action">🔄 Ver de nuevo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navegación -->
+    <div class="navigation">
+      <button id="prevSlide" class="nav-btn">←</button>
+      <div class="progress-dots" id="progressDots"></div>
+      <button id="nextSlide" class="nav-btn">→</button>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <script src="wrapped.js"></script>
+</body>
+</html>

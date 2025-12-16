@@ -102,3 +102,8 @@ document.getElementById('exportData').addEventListener('click', exportData);
 
 // Cargar stats al abrir el popup
 loadStats();
+
+// Abrir el Wrapped completo
+document.getElementById('openWrapped').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'wrapped.html' });
+});
