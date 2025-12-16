@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrowserRewind - Organizar Tabs</title>
+  <link rel="stylesheet" href="tab-groups.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 Organizar Tabs</h1>
+      <p class="subtitle">Agrupa tus tabs automáticamente por categoría</p>
+    </header>
+
+    <!-- Stats rápidas -->
+    <div class="quick-stats">
+      <div class="stat">
+        <span class="stat-icon">📑</span>
+        <div>
+          <div class="stat-value" id="totalTabs">0</div>
+          <div class="stat-label">Tabs abiertos</div>
+        </div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">📂</span>
+        <div>
+          <div class="stat-value" id="totalGroups">0</div>
+          <div class="stat-label">Grupos actuales</div>
+        </div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">💀</span>
+        <div>
+          <div class="stat-value" id="zombieTabs">0</div>
+          <div class="stat-label">Tabs zombies</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+      <button id="analyzeBtn" class="btn btn-primary">
+        🔍 Analizar Tabs
+      </button>
+      <button id="autoGroupBtn" class="btn btn-success">
+        ✨ Agrupar Todo
+      </button>
+      <button id="ungroupAllBtn" class="btn btn-secondary">
+        🗂️ Desagrupar Todo
+      </button>
+    </div>
+
+    <!-- Sugerencias de agrupación -->
+    <div class="suggestions-section" id="suggestionsSection" style="display: none;">
+      <h2>💡 Sugerencias de Agrupación</h2>
+      <p class="suggestions-info">Encontramos estos tabs que podrían agruparse:</p>
+      <div id="suggestionsList" class="suggestions-list">
+        <!-- Se llenará dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Tabs sin agrupar -->
+    <div class="ungrouped-section" id="ungroupedSection">
+      <h2>📄 Tabs sin agrupar</h2>
+      <div id="ungroupedList" class="tabs-list">
+        <!-- Se llenará dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Grupos existentes -->
+    <div class="groups-section" id="groupsSection" style="display: none;">
+      <h2>📂 Grupos existentes</h2>
+      <div id="groupsList" class="groups-list">
+        <!-- Se llenará dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>Analizando tabs...</p>
+    </div>
+  </div>
+
+  <script src="tab-groups.js"></script>
+</body>
+</html>

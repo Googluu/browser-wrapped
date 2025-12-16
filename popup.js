@@ -107,3 +107,8 @@ loadStats();
 document.getElementById('openWrapped').addEventListener('click', () => {
   chrome.tabs.create({ url: 'wrapped.html' });
 });
+
+// Abrir la página de organización de tabs
+document.getElementById('openTabGroups').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'tab-groups.html' });
+});
