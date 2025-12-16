@@ -1,0 +1,52 @@
+<!-- UI del popup -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrowserRewind</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎵 BrowserRewind</h1>
+      <p class="subtitle">Tu navegación en números</p>
+    </header>
+
+    <div class="stats-summary">
+      <div class="stat-card">
+        <div class="stat-value" id="totalSites">0</div>
+        <div class="stat-label">Sitios únicos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalVisits">0</div>
+        <div class="stat-label">Visitas totales</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalTime">0h</div>
+        <div class="stat-label">Tiempo total</div>
+      </div>
+    </div>
+
+    <div class="top-sites-section">
+      <h2>🏆 Top 10 Sitios</h2>
+      <div id="topSitesList" class="top-sites-list">
+        <!-- Se llenara dinamicamente -->
+      </div>
+    </div>
+
+    <div class="no-data" id="noData" style="display: none;">
+      <p>📊 Aún no hay datos suficientes</p>
+      <p class="small">Navega un poco y vuelve pronto!</p>
+    </div>
+
+    <footer>
+      <button id="clearData" class="btn-secondary">🗑️ Limpiar datos</button>
+      <button id="exportData" class="btn-primary">📥 Exportar</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

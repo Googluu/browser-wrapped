@@ -1,0 +1,196 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 400px;
+  min-height: 500px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.container {
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 15px 10px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.top-sites-section {
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.top-sites-list {
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.site-item {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s;
+}
+
+.site-item:hover {
+  transform: translateX(5px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.site-rank {
+  font-size: 18px;
+  font-weight: 700;
+  margin-right: 12px;
+  min-width: 30px;
+}
+
+.site-info {
+  flex: 1;
+}
+
+.site-domain {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-stats {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.site-time {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  min-width: 60px;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-data p {
+  margin-bottom: 10px;
+}
+
+.small {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+}
+
+.btn-primary:hover {
+  background: #fff;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Scrollbar personalizado */
+.top-sites-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.top-sites-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.top-sites-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.top-sites-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
