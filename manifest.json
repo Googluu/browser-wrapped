@@ -6,7 +6,9 @@
   "permissions": [
     "tabs",
     "storage",
-    "history"
+    "history",
+    "bookmarks",
+    "tabGroups"
   ],
   "host_permissions": [
     "<all_urls>"
