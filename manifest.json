@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "BrowserRewind",
   "version": "1.0.0",
-  "description": "Tu Spotify Wrapped pero para tu navegador. Descubre tus sitios más visitados y patrones de navegación.",
+  "description": "Tu Rewind para tu navegador. Descubre tus sitios más visitados, patrones de navegación y organiza tus tabs automáticamente.",
   "permissions": [
     "tabs",
     "storage",
