@@ -124,7 +124,19 @@ function categorizeDomain(domain) {
   };
 }
 
-// Exportar para uso en otros archivos
+// CRÍTICO: Exportar al objeto window para uso en el navegador
+if (typeof window !== 'undefined') {
+  window.SITE_CATEGORIES = SITE_CATEGORIES;
+  window.categorizeDomain = categorizeDomain;
+}
+
+// Exportar para uso en service workers (background.js)
+if (typeof self !== 'undefined' && self.importScripts) {
+  self.SITE_CATEGORIES = SITE_CATEGORIES;
+  self.categorizeDomain = categorizeDomain;
+}
+
+// Exportar para uso en Node.js (si aplica)
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { SITE_CATEGORIES, categorizeDomain };
 }

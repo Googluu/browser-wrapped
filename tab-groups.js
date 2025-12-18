@@ -422,9 +422,19 @@ document.getElementById('ungroupAllBtn').addEventListener('click', ungroupAll);
 (async function init() {
   console.log('🚀 Inicializando Tab Groups...');
   
+  // Esperar a que las categorías se carguen (máximo 3 segundos)
+  let attempts = 0;
+  const maxAttempts = 30; // 30 intentos de 100ms = 3 segundos
+  
+  while ((!window.SITE_CATEGORIES || !window.categorizeDomain) && attempts < maxAttempts) {
+    console.log(`⏳ Esperando categorías... intento ${attempts + 1}`);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  
   // Verificar que las categorías estén cargadas
   if (!window.SITE_CATEGORIES || !window.categorizeDomain) {
-    console.error('❌ Las categorías no están disponibles');
+    console.error('❌ Las categorías no están disponibles después de esperar');
     alert('Error: No se pudieron cargar las categorías. Por favor recarga la página.');
     return;
   }
