@@ -1,19 +1,5 @@
-// Importar categorías
-let SITE_CATEGORIES, categorizeDomain;
-
-// Cargar el script de categorías
-async function loadCategories() {
-  return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = 'categories.js';
-    script.onload = () => {
-      SITE_CATEGORIES = window.SITE_CATEGORIES;
-      categorizeDomain = window.categorizeDomain;
-      resolve();
-    };
-    document.head.appendChild(script);
-  });
-}
+// Las categorías ya están cargadas desde categories.js en el HTML
+// Están disponibles como window.SITE_CATEGORIES y window.categorizeDomain
 
 // Colores para grupos según categoría
 const CATEGORY_COLORS = {
@@ -50,104 +36,169 @@ function getDomain(url) {
 async function analyzeTabs() {
   showLoading(true);
   
-  // Obtener todos los tabs
-  const tabs = await chrome.tabs.query({ currentWindow: true });
-  currentTabs = tabs;
-  
-  // Obtener grupos existentes
-  const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
-  currentGroups = groups;
-  
-  // Categorizar tabs
-  const categorized = {};
-  const ungrouped = [];
-  
-  for (const tab of tabs) {
-    if (!tab.url || tab.url.startsWith('chrome://')) continue;
+  try {
+    // Obtener todos los tabs de la ventana actual
+    const windows = await chrome.windows.getCurrent();
+    const tabs = await chrome.tabs.query({ windowId: windows.id });
+    currentTabs = tabs;
     
-    const domain = getDomain(tab.url);
-    if (!domain) continue;
+    // Obtener grupos existentes
+    const groups = await chrome.tabGroups.query({ windowId: windows.id });
+    currentGroups = groups;
     
-    const category = categorizeDomain(domain);
+    // Categorizar tabs
+    const categorized = {};
     
-    // Si el tab no está en un grupo
-    if (tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE) {
-      if (!categorized[category.id]) {
-        categorized[category.id] = {
-          category: category,
-          tabs: []
-        };
+    for (const tab of tabs) {
+      if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) continue;
+      
+      const domain = getDomain(tab.url);
+      if (!domain) continue;
+      
+      const category = window.categorizeDomain(domain);
+      
+      // Si el tab no está en un grupo
+      if (tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE || tab.groupId === -1) {
+        if (!categorized[category.id]) {
+          categorized[category.id] = {
+            category: category,
+            tabs: []
+          };
+        }
+        categorized[category.id].tabs.push(tab);
       }
-      categorized[category.id].tabs.push(tab);
-      ungrouped.push(tab);
     }
-  }
-  
-  // Filtrar solo categorías con 2+ tabs
-  suggestions = {};
-  for (const [categoryId, data] of Object.entries(categorized)) {
-    if (data.tabs.length >= 2) {
-      suggestions[categoryId] = data;
+    
+    // Filtrar solo categorías con 2+ tabs
+    suggestions = {};
+    for (const [categoryId, data] of Object.entries(categorized)) {
+      if (data.tabs.length >= 2) {
+        suggestions[categoryId] = data;
+      }
     }
+    
+    console.log('📊 Análisis completado:', {
+      totalTabs: currentTabs.length,
+      grupos: currentGroups.length,
+      sugerencias: Object.keys(suggestions).length
+    });
+    
+  } catch (error) {
+    console.error('❌ Error analizando tabs:', error);
+  } finally {
+    showLoading(false);
+    updateUI();
   }
-  
-  showLoading(false);
-  updateUI();
 }
 
 // Crear grupo para una categoría
 async function createGroupForCategory(categoryId) {
-  const suggestion = suggestions[categoryId];
-  if (!suggestion) return;
-  
-  const tabIds = suggestion.tabs.map(t => t.id);
-  
-  // Crear el grupo
-  const groupId = await chrome.tabs.group({ tabIds });
-  
-  // Configurar el grupo
-  await chrome.tabGroups.update(groupId, {
-    title: suggestion.category.name,
-    color: CATEGORY_COLORS[categoryId] || 'grey',
-    collapsed: false
-  });
-  
-  // Reanalizar
-  await analyzeTabs();
+  try {
+    const suggestion = suggestions[categoryId];
+    if (!suggestion) return;
+    
+    const tabIds = suggestion.tabs.map(t => t.id);
+    
+    console.log(`Creando grupo para ${suggestion.category.name} con ${tabIds.length} tabs`);
+    
+    // Crear el grupo
+    const groupId = await chrome.tabs.group({ tabIds });
+    
+    // Configurar el grupo
+    await chrome.tabGroups.update(groupId, {
+      title: suggestion.category.name,
+      color: CATEGORY_COLORS[categoryId] || 'grey',
+      collapsed: false
+    });
+    
+    console.log('✅ Grupo creado exitosamente');
+    
+    // Reanalizar después de un momento
+    setTimeout(() => analyzeTabs(), 500);
+    
+  } catch (error) {
+    console.error('❌ Error creando grupo:', error);
+    alert('Error creando el grupo: ' + error.message);
+  }
 }
 
 // Agrupar todos automáticamente
 async function autoGroupAll() {
-  for (const categoryId of Object.keys(suggestions)) {
-    await createGroupForCategory(categoryId);
+  showLoading(true);
+  
+  try {
+    const categoryIds = Object.keys(suggestions);
+    console.log(`Agrupando ${categoryIds.length} categorías...`);
+    
+    for (const categoryId of categoryIds) {
+      await createGroupForCategory(categoryId);
+      // Pequeña pausa entre grupos para evitar problemas
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
+    console.log('✅ Todos los grupos creados');
+  } catch (error) {
+    console.error('❌ Error agrupando todo:', error);
+  } finally {
+    showLoading(false);
+    setTimeout(() => analyzeTabs(), 500);
   }
 }
 
 // Desagrupar todos los grupos
 async function ungroupAll() {
-  const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
-  
-  for (const group of groups) {
-    await chrome.tabs.ungroup(group.id);
+  try {
+    const windows = await chrome.windows.getCurrent();
+    const groups = await chrome.tabGroups.query({ windowId: windows.id });
+    
+    console.log(`Desagrupando ${groups.length} grupos...`);
+    
+    for (const group of groups) {
+      const tabs = await chrome.tabs.query({ groupId: group.id });
+      const tabIds = tabs.map(t => t.id);
+      await chrome.tabs.ungroup(tabIds);
+    }
+    
+    console.log('✅ Todos los grupos desagrupados');
+    setTimeout(() => analyzeTabs(), 500);
+    
+  } catch (error) {
+    console.error('❌ Error desagrupando:', error);
   }
-  
-  await analyzeTabs();
 }
 
 // Desagrupar un grupo específico
 async function ungroupSpecific(groupId) {
-  const tabs = await chrome.tabs.query({ groupId });
-  const tabIds = tabs.map(t => t.id);
-  await chrome.tabs.ungroup(tabIds);
-  await analyzeTabs();
+  try {
+    const tabs = await chrome.tabs.query({ groupId });
+    const tabIds = tabs.map(t => t.id);
+    await chrome.tabs.ungroup(tabIds);
+    
+    console.log('✅ Grupo desagrupado');
+    setTimeout(() => analyzeTabs(), 500);
+    
+  } catch (error) {
+    console.error('❌ Error desagrupando grupo:', error);
+  }
 }
 
 // Cerrar grupo
 async function closeGroup(groupId) {
-  const tabs = await chrome.tabs.query({ groupId });
-  const tabIds = tabs.map(t => t.id);
-  await chrome.tabs.remove(tabIds);
-  await analyzeTabs();
+  try {
+    if (!confirm('¿Estás seguro de que quieres cerrar todos los tabs de este grupo?')) {
+      return;
+    }
+    
+    const tabs = await chrome.tabs.query({ groupId });
+    const tabIds = tabs.map(t => t.id);
+    await chrome.tabs.remove(tabIds);
+    
+    console.log('✅ Grupo cerrado');
+    setTimeout(() => analyzeTabs(), 500);
+    
+  } catch (error) {
+    console.error('❌ Error cerrando grupo:', error);
+  }
 }
 
 // Actualizar UI
@@ -163,7 +214,7 @@ function updateStats() {
   document.getElementById('totalTabs').textContent = currentTabs.length;
   document.getElementById('totalGroups').textContent = currentGroups.length;
   
-  // Calcular tabs zombies (tabs inactivos)
+  // Calcular tabs zombies
   chrome.storage.local.get(['tabStats'], (result) => {
     const zombieCount = result.tabStats?.zombieTabs?.length || 0;
     document.getElementById('zombieTabs').textContent = zombieCount;
@@ -212,14 +263,21 @@ function updateSuggestions() {
         ${moreText}
       </div>
       <div class="suggestion-actions">
-        <button class="btn btn-success btn-small" onclick="createGroupForCategory('${categoryId}')">
+        <button class="btn btn-success btn-small" data-category="${categoryId}">
           ✨ Crear Grupo
         </button>
-        <button class="btn btn-secondary btn-small" onclick="ignoreCategory('${categoryId}')">
+        <button class="btn btn-secondary btn-small" data-category-ignore="${categoryId}">
           ❌ Ignorar
         </button>
       </div>
     `;
+    
+    // Event listeners para los botones
+    const createBtn = card.querySelector('[data-category]');
+    createBtn.addEventListener('click', () => createGroupForCategory(categoryId));
+    
+    const ignoreBtn = card.querySelector('[data-category-ignore]');
+    ignoreBtn.addEventListener('click', () => ignoreCategory(categoryId));
     
     suggestionsList.appendChild(card);
   }
@@ -227,11 +285,10 @@ function updateSuggestions() {
 
 // Actualizar tabs sin agrupar
 function updateUngroupedTabs() {
-  const ungroupedSection = document.getElementById('ungroupedSection');
   const ungroupedList = document.getElementById('ungroupedList');
   
   const ungroupedTabs = currentTabs.filter(
-    tab => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE
+    tab => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE || tab.groupId === -1
   );
   
   if (ungroupedTabs.length === 0) {
@@ -247,12 +304,12 @@ function updateUngroupedTabs() {
   ungroupedList.innerHTML = '';
   
   for (const tab of ungroupedTabs) {
-    if (!tab.url || tab.url.startsWith('chrome://')) continue;
+    if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) continue;
     
     const domain = getDomain(tab.url);
     if (!domain) continue;
     
-    const category = categorizeDomain(domain);
+    const category = window.categorizeDomain(domain);
     
     const item = document.createElement('div');
     item.className = 'tab-item';
@@ -282,23 +339,23 @@ async function updateExistingGroups() {
   groupsSection.style.display = 'block';
   groupsList.innerHTML = '';
   
+  const colorMap = {
+    grey: '#888',
+    blue: '#4285f4',
+    red: '#ea4335',
+    yellow: '#fbbc04',
+    green: '#34a853',
+    pink: '#ff6d9e',
+    purple: '#9334e6',
+    cyan: '#00acc1',
+    orange: '#ff6f00'
+  };
+  
   for (const group of currentGroups) {
     const tabs = await chrome.tabs.query({ groupId: group.id });
     
     const groupItem = document.createElement('div');
     groupItem.className = 'group-item';
-    
-    const colorMap = {
-      grey: '#888',
-      blue: '#4285f4',
-      red: '#ea4335',
-      yellow: '#fbbc04',
-      green: '#34a853',
-      pink: '#ff6d9e',
-      purple: '#9334e6',
-      cyan: '#00acc1',
-      orange: '#ff6f00'
-    };
     
     const tabsHTML = tabs.map(tab => {
       const domain = getDomain(tab.url);
@@ -321,10 +378,10 @@ async function updateExistingGroups() {
           <span class="suggestion-count">${tabs.length} tabs</span>
         </div>
         <div class="group-actions">
-          <button class="btn-icon" onclick="ungroupSpecific(${group.id})" title="Desagrupar">
+          <button class="btn-icon" data-ungroup="${group.id}" title="Desagrupar">
             🗂️
           </button>
-          <button class="btn-icon" onclick="closeGroup(${group.id})" title="Cerrar grupo">
+          <button class="btn-icon" data-close="${group.id}" title="Cerrar grupo">
             ❌
           </button>
         </div>
@@ -333,6 +390,13 @@ async function updateExistingGroups() {
         ${tabsHTML}
       </div>
     `;
+    
+    // Event listeners
+    const ungroupBtn = groupItem.querySelector(`[data-ungroup="${group.id}"]`);
+    ungroupBtn.addEventListener('click', () => ungroupSpecific(group.id));
+    
+    const closeBtn = groupItem.querySelector(`[data-close="${group.id}"]`);
+    closeBtn.addEventListener('click', () => closeGroup(group.id));
     
     groupsList.appendChild(groupItem);
   }
@@ -349,18 +413,43 @@ function showLoading(show) {
   document.getElementById('loading').style.display = show ? 'block' : 'none';
 }
 
-// Event Listeners
+// Event Listeners principales
 document.getElementById('analyzeBtn').addEventListener('click', analyzeTabs);
 document.getElementById('autoGroupBtn').addEventListener('click', autoGroupAll);
 document.getElementById('ungroupAllBtn').addEventListener('click', ungroupAll);
 
 // Inicializar
 (async function init() {
-  await loadCategories();
+  console.log('🚀 Inicializando Tab Groups...');
+  
+  // Verificar que las categorías estén cargadas
+  if (!window.SITE_CATEGORIES || !window.categorizeDomain) {
+    console.error('❌ Las categorías no están disponibles');
+    alert('Error: No se pudieron cargar las categorías. Por favor recarga la página.');
+    return;
+  }
+  
+  console.log('✅ Categorías disponibles:', Object.keys(window.SITE_CATEGORIES).length);
+  
   await analyzeTabs();
+  
+  console.log('✅ Tab Groups inicializado correctamente');
 })();
 
-// Escuchar cambios en tabs
-chrome.tabs.onCreated.addListener(() => setTimeout(analyzeTabs, 500));
-chrome.tabs.onRemoved.addListener(() => setTimeout(analyzeTabs, 500));
-chrome.tabs.onUpdated.addListener(() => setTimeout(analyzeTabs, 1000));
+// Escuchar cambios en tabs para actualizar en tiempo real
+chrome.tabs.onCreated.addListener(() => {
+  console.log('Tab creado, reanalizando...');
+  setTimeout(analyzeTabs, 500);
+});
+
+chrome.tabs.onRemoved.addListener(() => {
+  console.log('Tab removido, reanalizando...');
+  setTimeout(analyzeTabs, 500);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    console.log('Tab actualizado, reanalizando...');
+    setTimeout(analyzeTabs, 1000);
+  }
+});

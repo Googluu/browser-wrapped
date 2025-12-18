@@ -20,22 +20,66 @@ function formatNumber(num) {
 
 // Cargar datos
 async function loadData() {
-  const result = await chrome.storage.local.get([
-    'siteStats',
-    'categoryStats',
-    'hourlyActivity',
-    'bookmarkStats',
-    'tabStats',
-    'dailyStats'
-  ]);
-  
-  stats = result;
-  
-  // Simular tiempo de carga
-  setTimeout(() => {
-    hideLoading();
-    showSlide(1);
-  }, 2000);
+  try {
+    // Primero verificar si hay un análisis en curso
+    const statusResponse = await chrome.runtime.sendMessage({ action: 'getAnalysisStatus' });
+    
+    if (statusResponse.isAnalyzing) {
+      console.log('Análisis en curso, esperando...');
+      // Esperar un poco más
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+    
+    // Intentar forzar análisis si no hay datos suficientes
+    const quickCheck = await chrome.storage.local.get(['siteStats', 'lastHistorySync']);
+    const siteCount = Object.keys(quickCheck.siteStats || {}).length;
+    const lastSync = quickCheck.lastHistorySync || 0;
+    const hoursSinceSync = (Date.now() - lastSync) / (1000 * 60 * 60);
+    
+    console.log(`Sitios en cache: ${siteCount}, última sincronización hace ${hoursSinceSync.toFixed(1)} horas`);
+    
+    // Si hay pocos datos o no se ha sincronizado nunca, forzar sync
+    if (siteCount < 10 || lastSync === 0) {
+      console.log('Pocos datos, forzando análisis del historial...');
+      const analyzeResult = await chrome.runtime.sendMessage({ action: 'analyzeHistory' });
+      console.log('Resultado del análisis:', analyzeResult);
+      
+      if (analyzeResult.success) {
+        // Esperar un momento para que se guarden los datos
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // Cargar todos los datos
+    const result = await chrome.storage.local.get([
+      'siteStats',
+      'categoryStats',
+      'hourlyActivity',
+      'bookmarkStats',
+      'tabStats',
+      'dailyStats'
+    ]);
+    
+    stats = result;
+    
+    console.log('Datos cargados:', {
+      sitios: Object.keys(stats.siteStats || {}).length,
+      categorías: Object.keys(stats.categoryStats || {}).length,
+      días: Object.keys(stats.dailyStats || {}).length
+    });
+    
+    // Simular tiempo de carga para mejor UX
+    setTimeout(() => {
+      hideLoading();
+      showSlide(1);
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error cargando datos:', error);
+    // Mostrar error al usuario
+    document.querySelector('.loading-title').textContent = 'Error cargando datos';
+    document.querySelector('.loading-subtitle').textContent = 'Por favor, recarga la página';
+  }
 }
 
 // Ocultar loading
@@ -62,6 +106,7 @@ function showSlide(index) {
   updateNavigation();
   updateProgressBar();
 }
+
 
 // Poblar slide con datos
 function populateSlide(slideNum) {

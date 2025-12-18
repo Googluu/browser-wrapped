@@ -238,3 +238,36 @@ button {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(67, 233, 123, 0.6);
 }
+
+.sync-section {
+  margin: 15px 0;
+  text-align: center;
+}
+
+.btn-sync {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sync:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.btn-sync:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.sync-status {
+  font-size: 11px;
+  margin-top: 8px;
+  opacity: 0.8;
+}

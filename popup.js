@@ -112,3 +112,43 @@ document.getElementById('openWrapped').addEventListener('click', () => {
 document.getElementById('openTabGroups').addEventListener('click', () => {
   chrome.tabs.create({ url: 'tab-groups.html' });
 });
+
+// Sincronizar historial
+document.getElementById('syncHistory').addEventListener('click', async () => {
+  const btn = document.getElementById('syncHistory');
+  const status = document.getElementById('syncStatus');
+  
+  btn.disabled = true;
+  btn.textContent = '🔄 Sincronizando...';
+  status.textContent = 'Esto puede tomar unos segundos...';
+  
+  try {
+    const result = await chrome.runtime.sendMessage({ action: 'analyzeHistory' });
+    
+    if (result.success) {
+      status.textContent = `✅ ${result.processed || 'Varios'} sitios procesados`;
+      setTimeout(loadStats, 1000); // Recargar stats
+    } else {
+      status.textContent = `⚠️ ${result.reason || 'Error desconocido'}`;
+    }
+  } catch (error) {
+    status.textContent = '❌ Error: ' + error.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 Sincronizar Historial';
+  }
+});
+
+// Mostrar última sincronización al cargar
+chrome.storage.local.get(['lastHistorySync'], (result) => {
+  const lastSync = result.lastHistorySync || 0;
+  if (lastSync > 0) {
+    const hours = Math.floor((Date.now() - lastSync) / (1000 * 60 * 60));
+    const status = document.getElementById('syncStatus');
+    if (hours < 1) {
+      status.textContent = 'Sincronizado recientemente';
+    } else {
+      status.textContent = `Última sincronización hace ${hours}h`;
+    }
+  }
+});
