@@ -388,3 +388,217 @@ body {
     font-size: 16px;
   }
 }
+
+/* Estilos para listas desplegables */
+.mini-item {
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 14px;
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+details summary {
+  font-weight: 600;
+  user-select: none;
+}
+
+details[open] summary {
+  margin-bottom: 10px;
+}
+
+/* Modal de compartir */
+.share-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.share-modal-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  animation: slideUp 0.4s ease-out;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.share-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.share-modal h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.share-subtitle {
+  text-align: center;
+  opacity: 0.9;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.share-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.share-option {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: #fff;
+}
+
+.share-option:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(5px);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.share-option > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.share-icon {
+  font-size: 36px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.share-title {
+  font-size: 18px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.share-desc {
+  font-size: 13px;
+  opacity: 0.8;
+  display: block;
+}
+
+.share-preview {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.share-preview h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.share-preview textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-family: monospace;
+  font-size: 13px;
+  resize: vertical;
+  margin-bottom: 15px;
+}
+
+.share-preview textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Estilos para listas desplegables (bookmarks) */
+.mini-item {
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 14px;
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+details summary {
+  font-weight: 600;
+  user-select: none;
+}
+
+details[open] summary {
+  margin-bottom: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .share-modal-content {
+    padding: 30px 20px;
+  }
+  
+  .share-option {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .share-icon {
+    font-size: 48px;
+  }
+}

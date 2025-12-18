@@ -22,17 +22,18 @@
       <div class="slide-content">
         <h1 class="slide-title animate-in">Tu año en</h1>
         <h1 class="slide-title-big animate-in">BrowserRewind</h1>
-        <p class="slide-subtitle animate-in">2024</p>
+        <p class="slide-subtitle animate-in" id="currentYear">2025</p>
       </div>
     </div>
 
     <!-- Slide 2: Tiempo total -->
     <div class="slide" data-slide="2">
       <div class="slide-content">
-        <p class="slide-intro">Este año pasaste</p>
+        <p class="slide-intro">Este año pasaste aproximadamente</p>
         <h1 class="slide-stat-big" id="totalTimeWrapped">0 horas</h1>
         <p class="slide-subtitle">navegando por la web</p>
         <p class="slide-comment" id="timeComment">¡Eso es mucho tiempo!</p>
+        <p style="font-size: 14px; opacity: 0.7; margin-top: 20px;">*Tiempo estimado basado en tu historial</p>
       </div>
     </div>
 
@@ -97,30 +98,31 @@
         <p class="slide-comment" id="tabsComment">¡Es hora de limpiar!</p>
       </div>
     </div>
-
+    
     <!-- Slide 9: Racha más larga -->
     <div class="slide" data-slide="9">
       <div class="slide-content">
-        <h2 class="slide-title-medium">🔥 Tu racha más larga</h2>
-        <p class="slide-intro">Navegaste</p>
+        <h2 class="slide-title-medium" id="streakTitle">🔥 Días navegados en 2025</h2>
+        <p class="slide-intro">Navegaste un total de</p>
         <h1 class="slide-stat-big" id="longestStreak">7 días</h1>
-        <p class="slide-subtitle">seguidos</p>
+        <p class="slide-subtitle">durante el año</p>
         <p class="slide-comment">¡Nada te detiene!</p>
       </div>
     </div>
-
+    
     <!-- Slide 10: Final -->
     <div class="slide" data-slide="10">
       <div class="slide-content">
         <h1 class="slide-title-big">Gracias por usar</h1>
         <h1 class="slide-title-big gradient-text">BrowserRewind</h1>
-        <p class="slide-subtitle">Nos vemos en 2025 🎉</p>
+        <p class="slide-subtitle">Nos vemos en 2026 🎉</p>
         <div class="final-actions">
           <button id="shareWrapped" class="btn-action">📸 Compartir</button>
           <button id="restartWrapped" class="btn-action">🔄 Ver de nuevo</button>
         </div>
       </div>
     </div>
+
 
     <!-- Navegación -->
     <div class="navigation">
@@ -132,6 +134,42 @@
     <!-- Progress bar -->
     <div class="progress-bar">
       <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- Modal de compartir -->
+  <div class="share-modal" id="shareModal" style="display: none;">
+    <div class="share-modal-content">
+      <button class="share-modal-close" id="closeShareModal">✕</button>
+      
+      <h2>📸 Compartir tu Wrapped</h2>
+      <p class="share-subtitle">Elige cómo quieres compartir tus estadísticas</p>
+      
+      <div class="share-options">
+        <button class="share-option" id="shareScreenshot">
+          <span class="share-icon">📸</span>
+          <span class="share-title">Captura de pantalla</span>
+          <span class="share-desc">Guarda la slide actual como imagen</span>
+        </button>
+        
+        <button class="share-option" id="shareText">
+          <span class="share-icon">📋</span>
+          <span class="share-title">Copiar resumen</span>
+          <span class="share-desc">Copia tu resumen como texto</span>
+        </button>
+        
+        <button class="share-option" id="shareTwitter">
+          <span class="share-icon">𝕏</span>
+          <span class="share-title">Compartir en X</span>
+          <span class="share-desc">Tweet tus estadísticas</span>
+        </button>
+      </div>
+      
+      <div class="share-preview" id="sharePreview" style="display: none;">
+        <h3>Vista previa del texto:</h3>
+        <textarea id="shareTextContent" readonly></textarea>
+        <button class="btn-action" id="copyShareText">📋 Copiar</button>
+      </div>
     </div>
   </div>
 

@@ -21,16 +21,29 @@ function formatNumber(num) {
 // Cargar datos
 async function loadData() {
   try {
-    // Primero verificar si hay un análisis en curso
+    const loadingTitle = document.querySelector('.loading-title');
+    const loadingSubtitle = document.querySelector('.loading-subtitle');
+    
+    // Verificar si hay análisis en curso
+    loadingSubtitle.textContent = 'Verificando datos...';
     const statusResponse = await chrome.runtime.sendMessage({ action: 'getAnalysisStatus' });
     
     if (statusResponse.isAnalyzing) {
+      loadingSubtitle.textContent = 'Análisis en curso, esperando...';
       console.log('Análisis en curso, esperando...');
-      // Esperar un poco más
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Esperar hasta que termine (máximo 30 segundos)
+      let waitTime = 0;
+      while (statusResponse.isAnalyzing && waitTime < 30000) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        waitTime += 1000;
+        const newStatus = await chrome.runtime.sendMessage({ action: 'getAnalysisStatus' });
+        if (!newStatus.isAnalyzing) break;
+      }
     }
     
-    // Intentar forzar análisis si no hay datos suficientes
+    // Revisar estado de los datos
+    loadingSubtitle.textContent = 'Revisando historial...';
     const quickCheck = await chrome.storage.local.get(['siteStats', 'lastHistorySync']);
     const siteCount = Object.keys(quickCheck.siteStats || {}).length;
     const lastSync = quickCheck.lastHistorySync || 0;
@@ -38,19 +51,29 @@ async function loadData() {
     
     console.log(`Sitios en cache: ${siteCount}, última sincronización hace ${hoursSinceSync.toFixed(1)} horas`);
     
-    // Si hay pocos datos o no se ha sincronizado nunca, forzar sync
-    if (siteCount < 10 || lastSync === 0) {
-      console.log('Pocos datos, forzando análisis del historial...');
+    // Si necesitamos sincronizar
+    if (siteCount < 50 || lastSync === 0) {
+      loadingTitle.textContent = 'Analizando tu historial...';
+      loadingSubtitle.textContent = 'Esto puede tomar unos segundos ☕';
+      console.log('Iniciando análisis del historial...');
+      
       const analyzeResult = await chrome.runtime.sendMessage({ action: 'analyzeHistory' });
       console.log('Resultado del análisis:', analyzeResult);
       
       if (analyzeResult.success) {
-        // Esperar un momento para que se guarden los datos
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        loadingSubtitle.textContent = `✅ ${analyzeResult.processed || 'Muchos'} sitios procesados!`;
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      } else {
+        console.warn('Análisis falló:', analyzeResult.reason);
       }
     }
     
-    // Cargar todos los datos
+    // Analizar bookmarks también
+    loadingSubtitle.textContent = 'Analizando bookmarks...';
+    await chrome.runtime.sendMessage({ action: 'analyzeBookmarks' });
+    
+    // Cargar todos los datos finales
+    loadingSubtitle.textContent = 'Preparando tu Wrapped...';
     const result = await chrome.storage.local.get([
       'siteStats',
       'categoryStats',
@@ -62,21 +85,21 @@ async function loadData() {
     
     stats = result;
     
-    console.log('Datos cargados:', {
+    console.log('Datos finales cargados:', {
       sitios: Object.keys(stats.siteStats || {}).length,
       categorías: Object.keys(stats.categoryStats || {}).length,
-      días: Object.keys(stats.dailyStats || {}).length
+      días: Object.keys(stats.dailyStats || {}).length,
+      bookmarks: Object.keys(stats.bookmarkStats || {}).length
     });
     
-    // Simular tiempo de carga para mejor UX
-    setTimeout(() => {
-      hideLoading();
-      showSlide(1);
-    }, 2000);
+    // Esperar un poco para efecto dramático
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    hideLoading();
+    showSlide(1);
     
   } catch (error) {
     console.error('Error cargando datos:', error);
-    // Mostrar error al usuario
     document.querySelector('.loading-title').textContent = 'Error cargando datos';
     document.querySelector('.loading-subtitle').textContent = 'Por favor, recarga la página';
   }
@@ -107,7 +130,6 @@ function showSlide(index) {
   updateProgressBar();
 }
 
-
 // Poblar slide con datos
 function populateSlide(slideNum) {
   const siteStats = stats.siteStats || {};
@@ -116,19 +138,31 @@ function populateSlide(slideNum) {
   const bookmarkStats = stats.bookmarkStats || {};
   const tabStats = stats.tabStats || {};
   const dailyStats = stats.dailyStats || {};
+
   
   switch(slideNum) {
+    case 1: // Bienvenida - actualizar año dinámicamente
+      const welcomeYear = new Date().getFullYear();
+      document.getElementById('currentYear').textContent = welcomeYear;
+      break;
     case 2: // Tiempo total
       const sitesArray = Object.values(siteStats);
       const totalTime = sitesArray.reduce((sum, site) => sum + site.totalTime, 0);
       const hours = Math.floor(totalTime / (1000 * 60 * 60));
       
-      document.getElementById('totalTimeWrapped').textContent = `${formatNumber(hours)} horas`;
+      // Si no hay tiempo real, estimarlo por visitas (promedio 2 min por visita)
+      let displayHours = hours;
+      if (hours === 0) {
+        const totalVisits = sitesArray.reduce((sum, site) => sum + site.visits, 0);
+        displayHours = Math.floor((totalVisits * 2) / 60); // 2 minutos por visita
+      }
+      
+      document.getElementById('totalTimeWrapped').textContent = `${formatNumber(displayHours)} horas`;
       
       let timeComment = '';
-      if (hours > 100) timeComment = '¡Eso es muchísimo tiempo! 🤯';
-      else if (hours > 50) timeComment = '¡Has estado ocupado! 💪';
-      else if (hours > 20) timeComment = 'Un buen balance 😊';
+      if (displayHours > 100) timeComment = '¡Eso es muchísimo tiempo! 🤯';
+      else if (displayHours > 50) timeComment = '¡Has estado ocupado! 💪';
+      else if (displayHours > 20) timeComment = 'Un buen balance 😊';
       else timeComment = 'Aún hay tiempo para más 🚀';
       
       document.getElementById('timeComment').textContent = timeComment;
@@ -147,13 +181,30 @@ function populateSlide(slideNum) {
       document.getElementById('sitesComment').textContent = sitesComment;
       break;
       
-    case 4: // Top 5 sitios
+    case 4: // Top 5 sitios - ARREGLADO: Ordenar por VISITAS, no por tiempo
       const topSites = Object.values(siteStats)
-        .sort((a, b) => b.totalTime - a.totalTime)
+        .filter(site => !site.domain.includes('extension://') && site.domain !== '127.0.0.1')
+        .sort((a, b) => b.visits - a.visits) // ORDENAR POR VISITAS
         .slice(0, 5);
       
       const topSitesHTML = topSites.map((site, index) => {
         const emoji = ['🥇', '🥈', '🥉', '🏅', '🏅'][index];
+        
+        // Mejorar formato de tiempo
+        let time = '';
+        if (site.totalTime > 0) {
+          time = formatTime(site.totalTime);
+        } else {
+          // Estimar: 1.5 min por visita, con formato bonito
+          const estimatedMinutes = Math.floor(site.visits * 1.5);
+          const estimatedHours = Math.floor(estimatedMinutes / 60);
+          if (estimatedHours > 0) {
+            time = `~${estimatedHours}h`;
+          } else {
+            time = `~${estimatedMinutes}m`;
+          }
+        }
+        
         return `
           <div class="top-item">
             <div class="top-rank">${emoji}</div>
@@ -161,7 +212,7 @@ function populateSlide(slideNum) {
               <div class="top-domain">${site.domain}</div>
               <div class="top-stats">${site.categoryEmoji} ${formatNumber(site.visits)} visitas</div>
             </div>
-            <div class="top-time">${formatTime(site.totalTime)}</div>
+            <div class="top-time">${time}</div>
           </div>
         `;
       }).join('');
@@ -169,14 +220,30 @@ function populateSlide(slideNum) {
       document.getElementById('topSitesWrapped').innerHTML = topSitesHTML;
       break;
       
-    case 5: // Categoría favorita
+    case 5: // Categoría favorita - ARREGLADO: Ordenar por VISITAS
       const categories = Object.entries(categoryStats)
-        .sort((a, b) => b[1].totalTime - a[1].totalTime);
+        .filter(([id, cat]) => id !== 'other')
+        .sort((a, b) => b[1].visits - a[1].visits); // ORDENAR POR VISITAS
       
       if (categories.length > 0) {
         const topCat = categories[0][1];
+        
+        // Mejorar formato de tiempo
+        let time = '';
+        if (topCat.totalTime > 0) {
+          time = formatTime(topCat.totalTime);
+        } else {
+          const estimatedMinutes = Math.floor(topCat.visits * 1.5);
+          const estimatedHours = Math.floor(estimatedMinutes / 60);
+          if (estimatedHours > 0) {
+            time = `~${estimatedHours}h`;
+          } else {
+            time = `~${estimatedMinutes}m`;
+          }
+        }
+        
         document.getElementById('topCategory').textContent = `${topCat.emoji} ${topCat.name}`;
-        document.getElementById('categoryTime').textContent = `con ${formatTime(topCat.totalTime)}`;
+        document.getElementById('categoryTime').textContent = `con ${formatNumber(topCat.visits)} visitas (${time})`;
         
         const comments = {
           development: '¡Sigue así campeón! 💻',
@@ -217,11 +284,31 @@ function populateSlide(slideNum) {
       document.getElementById('hourComment').textContent = hourComment;
       break;
       
-    case 7: // Cementerio de bookmarks
-      const unreadBookmarks = Object.values(bookmarkStats)
-        .filter(b => b.neverOpened).length;
+    case 7: // Cementerio de bookmarks - MEJORADO: Mostrar lista
+      const unreadBookmarks = Object.entries(bookmarkStats)
+        .filter(([domain, data]) => data.neverOpened);
       
-      document.getElementById('unreadBookmarks').textContent = formatNumber(unreadBookmarks);
+      document.getElementById('unreadBookmarks').textContent = formatNumber(unreadBookmarks.length);
+      
+      // Crear lista desplegable con los bookmarks sin abrir
+      const bookmarksList = unreadBookmarks.slice(0, 10).map(([domain, data]) => 
+        `<div class="mini-item">📚 ${domain} (${data.count} guardados)</div>`
+      ).join('');
+      
+      if (unreadBookmarks.length > 0) {
+        const existingComment = document.querySelector('.slide[data-slide="7"] .slide-comment');
+        existingComment.innerHTML = `
+          <details style="margin-top: 20px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <summary style="cursor: pointer; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+              Ver lista (${unreadBookmarks.length > 10 ? 'primeros 10' : 'todos'})
+            </summary>
+            <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; max-height: 300px; overflow-y: auto;">
+              ${bookmarksList}
+              ${unreadBookmarks.length > 10 ? `<div class="mini-item">...y ${unreadBookmarks.length - 10} más</div>` : ''}
+            </div>
+          </details>
+        `;
+      }
       break;
       
     case 8: // Tabs zombies
@@ -237,9 +324,13 @@ function populateSlide(slideNum) {
       document.getElementById('tabsComment').textContent = tabsComment;
       break;
       
-    case 9: // Racha más larga
-      const days = Object.keys(dailyStats).length;
-      document.getElementById('longestStreak').textContent = `${days} días`;
+    case 9: // Racha más larga - ARREGLADO: Días totales navegados
+      const totalDays = Object.keys(dailyStats).length;
+      const currentYear = new Date().getFullYear();
+      
+      // Actualizar título con año actual
+      document.getElementById('streakTitle').textContent = `🔥 Días navegados en ${currentYear}`;
+      document.getElementById('longestStreak').textContent = `${totalDays} días`;
       break;
   }
 }
@@ -271,37 +362,172 @@ function updateProgressBar() {
   document.getElementById('progressFill').style.width = `${progress}%`;
 }
 
-// Event listeners
-document.getElementById('prevSlide').addEventListener('click', () => {
-  if (currentSlide > 1) {
-    showSlide(currentSlide - 1);
+// Generar resumen de texto para compartir
+function generateShareText() {
+  const siteStats = stats.siteStats || {};
+  const categoryStats = stats.categoryStats || {};
+  const dailyStats = stats.dailyStats || {};
+  
+  const sitesArray = Object.values(siteStats);
+  const totalTime = sitesArray.reduce((sum, site) => sum + site.totalTime, 0);
+  const hours = Math.floor(totalTime / (1000 * 60 * 60));
+  const totalSites = sitesArray.length;
+  const totalDays = Object.keys(dailyStats).length;
+  
+  const topSites = sitesArray
+    .filter(site => !site.domain.includes('extension://') && site.domain !== '127.0.0.1')
+    .sort((a, b) => b.visits - a.visits)
+    .slice(0, 3);
+  
+  const topCategory = Object.entries(categoryStats)
+    .filter(([id]) => id !== 'other')
+    .sort((a, b) => b[1].visits - a[1].visits)[0];
+  
+  const year = new Date().getFullYear();
+  
+  let text = `🎵 Mi ${year} en BrowserRewind 🎵\n\n`;
+  text += `⏰ ${hours}h navegando\n`;
+  text += `🌐 ${totalSites} sitios únicos visitados\n`;
+  text += `📅 ${totalDays} días activos\n\n`;
+  text += `🏆 Top 3 Sitios:\n`;
+  
+  topSites.forEach((site, i) => {
+    text += `${i + 1}. ${site.domain} (${formatNumber(site.visits)} visitas)\n`;
+  });
+  
+  if (topCategory) {
+    text += `\n${topCategory[1].emoji} Categoría favorita: ${topCategory[1].name}\n`;
   }
-});
+  
+  text += `\n✨ Creado con BrowserRewind`;
+  
+  return text;
+}
 
-document.getElementById('nextSlide').addEventListener('click', () => {
-  if (currentSlide < totalSlides - 1) {
-    showSlide(currentSlide + 1);
-  }
-});
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 DOM cargado, inicializando event listeners...');
+  
+  // Event listeners de navegación
+  document.getElementById('prevSlide').addEventListener('click', () => {
+    if (currentSlide > 1) {
+      showSlide(currentSlide - 1);
+    }
+  });
 
-// Navegación con teclado
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) {
-    showSlide(currentSlide + 1);
-  } else if (e.key === 'ArrowLeft' && currentSlide > 1) {
-    showSlide(currentSlide - 1);
-  }
-});
+  document.getElementById('nextSlide').addEventListener('click', () => {
+    if (currentSlide < totalSlides - 1) {
+      showSlide(currentSlide + 1);
+    }
+  });
 
-// Compartir (screenshot simulado)
-document.getElementById('shareWrapped').addEventListener('click', () => {
-  alert('🎉 ¡Funcionalidad de compartir próximamente! Por ahora puedes hacer screenshot.');
-});
+  // Navegación con teclado
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) {
+      showSlide(currentSlide + 1);
+    } else if (e.key === 'ArrowLeft' && currentSlide > 1) {
+      showSlide(currentSlide - 1);
+    }
+  });
 
-// Reiniciar
-document.getElementById('restartWrapped').addEventListener('click', () => {
-  showSlide(1);
-});
+  // Abrir modal de compartir
+  document.getElementById('shareWrapped').addEventListener('click', () => {
+    console.log('Abriendo modal de compartir');
+    document.getElementById('shareModal').style.display = 'flex';
+  });
 
-// Cargar datos al iniciar
-loadData();
+  // Cerrar modal
+  document.getElementById('closeShareModal').addEventListener('click', () => {
+    document.getElementById('shareModal').style.display = 'none';
+    document.getElementById('sharePreview').style.display = 'none';
+  });
+
+  // Cerrar al hacer click fuera del modal
+  document.getElementById('shareModal').addEventListener('click', (e) => {
+    if (e.target.id === 'shareModal') {
+      document.getElementById('shareModal').style.display = 'none';
+      document.getElementById('sharePreview').style.display = 'none';
+    }
+  });
+
+  // Opción: Screenshot
+  document.getElementById('shareScreenshot').addEventListener('click', async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { mediaSource: 'screen' }
+      });
+      
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      
+      video.onloadedmetadata = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        stream.getTracks().forEach(track => track.stop());
+        
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `browser-rewind-${new Date().getTime()}.png`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+        });
+      };
+      
+      document.getElementById('shareModal').style.display = 'none';
+    } catch (error) {
+      console.error('Error capturando pantalla:', error);
+      alert('💡 Tip: Usa las teclas de tu sistema para hacer screenshot:\n\nWindows: Win + Shift + S\nmacOS: Cmd + Shift + 4\nLinux: Print Screen');
+    }
+  });
+
+  // Opción: Copiar texto
+  document.getElementById('shareText').addEventListener('click', () => {
+    const shareText = generateShareText();
+    document.getElementById('shareTextContent').value = shareText;
+    document.getElementById('sharePreview').style.display = 'block';
+  });
+
+  // Copiar texto al clipboard
+  document.getElementById('copyShareText').addEventListener('click', async () => {
+    const text = document.getElementById('shareTextContent').value;
+    
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copyShareText');
+      btn.textContent = '✅ Copiado!';
+      setTimeout(() => {
+        btn.textContent = '📋 Copiar';
+      }, 2000);
+    } catch (error) {
+      console.error('Error copiando:', error);
+      alert('No se pudo copiar automáticamente. Por favor selecciona y copia el texto manualmente.');
+    }
+  });
+
+  // Opción: Compartir en Twitter/X
+  document.getElementById('shareTwitter').addEventListener('click', () => {
+    const shareText = generateShareText();
+    const tweetText = encodeURIComponent(shareText.substring(0, 280));
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+    window.open(tweetUrl, '_blank');
+    document.getElementById('shareModal').style.display = 'none';
+  });
+
+  // Reiniciar
+  document.getElementById('restartWrapped').addEventListener('click', () => {
+    showSlide(1);
+  });
+
+  console.log('✅ Event listeners inicializados');
+  
+  // Cargar datos al iniciar
+  loadData();
+});

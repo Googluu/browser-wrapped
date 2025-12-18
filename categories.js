@@ -111,7 +111,7 @@ function categorizeDomain(domain) {
     for (const keyword of category.keywords) {
       if (lowerDomain.includes(keyword)) {
         return {
-          id: key,
+          id: key,  
           ...category
         };
       }
