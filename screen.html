@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screenshot Helper - BrowserRewind</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+    
+    .instructions {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .instructions h2 {
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+    
+    .instructions ol {
+      margin-left: 20px;
+    }
+    
+    .instructions li {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+    
+    .screenshot-frame {
+      background: white;
+      border: 3px dashed #667eea;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .frame-title {
+      background: #667eea;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .frame-size {
+      font-size: 12px;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    
+    .screenshot-area {
+      background: #f9f9f9;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Tamaño 1280x800 */
+    .size-large {
+      width: 1280px;
+      height: 800px;
+    }
+    
+    /* Tamaño 640x400 */
+    .size-small {
+      width: 640px;
+      height: 400px;
+    }
+    
+    .screenshot-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    
+    .placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #999;
+    }
+    
+    .placeholder-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+    
+    .upload-btn {
+      margin-top: 15px;
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .upload-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+    
+    .action-buttons {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .btn-capture {
+      background: #10b981;
+      color: white;
+    }
+    
+    .btn-download {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-clear {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .tip {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    
+    .tip strong {
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📸 Screenshot Helper - BrowserRewind</h1>
+    
+    <div class="instructions">
+      <h2>Cómo crear screenshots perfectos para Chrome Web Store:</h2>
+      <ol>
+        <li>Toma screenshots de tu extensión (popup, wrapped, tab groups)</li>
+        <li>Sube cada imagen usando el botón "Subir imagen"</li>
+        <li>La imagen se redimensionará automáticamente a 1280x800px</li>
+        <li>Click en "Descargar Screenshot" para guardarla</li>
+        <li>Sube el archivo descargado a Chrome Web Store</li>
+      </ol>
+      
+      <div class="tip">
+        <strong>💡 Tip:</strong> Chrome Web Store requiere mínimo 1 screenshot y máximo 5. 
+        Tamaños aceptados: 1280x800 o 640x400 píxeles.
+      </div>
+    </div>
+    
+    <!-- Screenshot 1: 1280x800 -->
+    <div class="screenshot-frame">
+      <div class="frame-title">
+        <span>Screenshot 1 - Popup Principal</span>
+        <span class="frame-size">1280x800px</span>
+      </div>
+      <div class="screenshot-area size-large" id="canvas1">
+        <div class="placeholder">
+          <div class="placeholder-icon">🖼️</div>
+          <p>Arrastra tu screenshot aquí o</p>
+          <button class="upload-btn" onclick="document.getElementById('file1').click()">
+            Subir imagen
+          </button>
+          <input type="file" id="file1" accept="image/*" onchange="loadImage(1)">
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-download" onclick="downloadScreenshot(1)">📥 Descargar Screenshot</button>
+        <button class="btn btn-clear" onclick="clearImage(1)">🗑️ Limpiar</button>
+      </div>
+    </div>
+    
+    <!-- Screenshot 2: 1280x800 -->
+    <div class="screenshot-frame">
+      <div class="frame-title">
+        <span>Screenshot 2 - Wrapped</span>
+        <span class="frame-size">1280x800px</span>
+      </div>
+      <div class="screenshot-area size-large" id="canvas2">
+        <div class="placeholder">
+          <div class="placeholder-icon">🖼️</div>
+          <p>Arrastra tu screenshot aquí o</p>
+          <button class="upload-btn" onclick="document.getElementById('file2').click()">
+            Subir imagen
+          </button>
+          <input type="file" id="file2" accept="image/*" onchange="loadImage(2)">
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-download" onclick="downloadScreenshot(2)">📥 Descargar Screenshot</button>
+        <button class="btn btn-clear" onclick="clearImage(2)">🗑️ Limpiar</button>
+      </div>
+    </div>
+    
+    <!-- Screenshot 3: 1280x800 -->
+    <div class="screenshot-frame">
+      <div class="frame-title">
+        <span>Screenshot 3 - Tab Groups</span>
+        <span class="frame-size">1280x800px</span>
+      </div>
+      <div class="screenshot-area size-large" id="canvas3">
+        <div class="placeholder">
+          <div class="placeholder-icon">🖼️</div>
+          <p>Arrastra tu screenshot aquí o</p>
+          <button class="upload-btn" onclick="document.getElementById('file3').click()">
+            Subir imagen
+          </button>
+          <input type="file" id="file3" accept="image/*" onchange="loadImage(3)">
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-download" onclick="downloadScreenshot(3)">📥 Descargar Screenshot</button>
+        <button class="btn btn-clear" onclick="clearImage(3)">🗑️ Limpiar</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const canvases = {};
+    
+    function loadImage(num) {
+      const file = document.getElementById(`file${num}`).files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // Crear canvas con tamaño correcto
+          const canvas = document.createElement('canvas');
+          canvas.width = 1280;
+          canvas.height = 800;
+          
+          const ctx = canvas.getContext('2d');
+          
+          // Fondo blanco
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, 1280, 800);
+          
+          // Calcular dimensiones para centrar la imagen manteniendo aspecto
+          let drawWidth = 1280;
+          let drawHeight = 800;
+          let offsetX = 0;
+          let offsetY = 0;
+          
+          const imgRatio = img.width / img.height;
+          const canvasRatio = 1280 / 800;
+          
+          if (imgRatio > canvasRatio) {
+            // Imagen más ancha
+            drawWidth = 1280;
+            drawHeight = 1280 / imgRatio;
+            offsetY = (800 - drawHeight) / 2;
+          } else {
+            // Imagen más alta
+            drawHeight = 800;
+            drawWidth = 800 * imgRatio;
+            offsetX = (1280 - drawWidth) / 2;
+          }
+          
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+          
+          // Guardar canvas
+          canvases[num] = canvas;
+          
+          // Mostrar en el área
+          const area = document.getElementById(`canvas${num}`);
+          area.innerHTML = '';
+          area.appendChild(canvas);
+          
+          console.log(`✅ Imagen ${num} cargada: ${canvas.width}x${canvas.height}px`);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    function downloadScreenshot(num) {
+      const canvas = canvases[num];
+      if (!canvas) {
+        alert('Primero sube una imagen');
+        return;
+      }
+      
+      canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `browserrewind-screenshot-${num}.png`;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        console.log(`✅ Screenshot ${num} descargado`);
+      }, 'image/png');
+    }
+    
+    function clearImage(num) {
+      const area = document.getElementById(`canvas${num}`);
+      area.innerHTML = `
+        <div class="placeholder">
+          <div class="placeholder-icon">🖼️</div>
+          <p>Arrastra tu screenshot aquí o</p>
+          <button class="upload-btn" onclick="document.getElementById('file${num}').click()">
+            Subir imagen
+          </button>
+          <input type="file" id="file${num}" accept="image/*" onchange="loadImage(${num})">
+        </div>
+      `;
+      delete canvases[num];
+    }
+    
+    // Drag & Drop
+    document.querySelectorAll('.screenshot-area').forEach((area, index) => {
+      const num = index + 1;
+      
+      area.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        area.style.borderColor = '#10b981';
+      });
+      
+      area.addEventListener('dragleave', () => {
+        area.style.borderColor = '#667eea';
+      });
+      
+      area.addEventListener('drop', (e) => {
+        e.preventDefault();
+        area.style.borderColor = '#667eea';
+        
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const input = document.getElementById(`file${num}`);
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          input.files = dataTransfer.files;
+          loadImage(num);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
