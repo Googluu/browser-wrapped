@@ -10,9 +10,7 @@
     "bookmarks",
     "tabGroups"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": [],
   "background": {
     "service_worker": "background.js"
   },
